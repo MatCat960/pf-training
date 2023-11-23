@@ -42,9 +42,8 @@ file = path / 'log.txt'
 
 
 
-robot = np.zeros((2, NUM_STEPS), dtype=np.float)
+robot = np.zeros((2, NUM_STEPS), dtype=float)
 vels = np.zeros((NUM_STEPS, 2))
-print(robot.shape)
 robot[0, 0] = 5.0
 robot[1, 0] = 5.0
 vel = 1.0

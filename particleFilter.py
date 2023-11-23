@@ -23,7 +23,7 @@ class ParticleFilter():
 
     self.particles = np.zeros((self.size, self.n), dtype=float)
     self.weights = 1 / self.n * np.ones((self.n), dtype=float)
-    print("Weights shape: {}".format(self.weights.shape))
+    # print("Weights shape: {}".format(self.weights.shape))
 
     sigma_x = initCovariance[0]
     sigma_y = initCovariance[1]
