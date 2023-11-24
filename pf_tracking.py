@@ -16,6 +16,7 @@ from copy import deepcopy as dc
 
 from numpy import linalg as LA
 import pathlib
+from tqdm import tqdm
 
 # import from utils files
 from utils import *
@@ -28,8 +29,12 @@ from particleFilter import ParticleFilter
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 AREA_SIZE = 40.0
+AREA_LEFT = -10.0
+AREA_RIGHT = 30.0
+AREA_TOP = 20.0
+AREA_BOTTOM = -20.0
 NUM_PARTICLES = 2000
-NUM_STEPS = 1000
+NUM_STEPS = 10000
 GRAPHICS_ON = False
 
 
@@ -51,8 +56,16 @@ dt = 1.0
 u = np.array([vel, vel])
 x0 = np.zeros(3)
 initCov = 1.0*np.ones((2))
+theta = random.uniform(0, 2*math.pi)
 for i in range(1, NUM_STEPS):
-  robot[:, i], vels[i, :] = move_random_get_vel(robot[:, i-1])
+  # robot[:, i], vels[i, :] = move_random_get_vel(robot[:, i-1])
+  if robot[0, i-1] <= AREA_LEFT or robot[0, i-1] >= AREA_RIGHT or robot[1, i-1] <= AREA_BOTTOM or robot[1, i-1] >= AREA_TOP:
+    theta = random.uniform(0, 2*math.pi)
+  
+  vels[i, 0] = vel * math.cos(theta)
+  vels[i, 1] = vel * math.sin(theta)
+  robot[0, i] = max(AREA_LEFT, min(robot[0, i-1] + vel*math.cos(theta), AREA_RIGHT))
+  robot[1, i] = max(AREA_BOTTOM, min(robot[1, i-1] + vel*math.sin(theta), AREA_TOP))
 
 filter = ParticleFilter(NUM_PARTICLES, x0[:2], initCov)
 samples = filter.getParticles()
@@ -61,7 +74,7 @@ samples = filter.getParticles()
 
 means_log = []
 
-for i in range(NUM_STEPS):
+for i in tqdm(range(NUM_STEPS)):
   # row = 0
   # if i > 4:
   #   row = 1
