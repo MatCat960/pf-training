@@ -1,1 +1,5 @@
+# ignore compilation files
 __pycache__
+
+# ignore output files from slurm
+*.out
