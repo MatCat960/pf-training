@@ -106,8 +106,8 @@ def move_random(pt):
   x = pt[0]
   y = pt[1]
 
-  dx = random.uniform(-1, 1)
-  dy = random.uniform(-1, 1)
+  dx = random.uniform(-0.5, 0.5)
+  dy = random.uniform(-0.5, 0.5)
 
   xn = x + dx
   yn = y + dy

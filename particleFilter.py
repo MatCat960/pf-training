@@ -46,8 +46,8 @@ class ParticleFilter():
 
 
   def predict(self, vel, dt=0.2):
-    sigma_x = self.covariance[0]
-    sigma_y = self.covariance[1]
+    sigma_x = 0.5
+    sigma_y = 0.5
 
     for i in range(self.n):
       x_next = self.particles[0, i] + vel[0]*dt
