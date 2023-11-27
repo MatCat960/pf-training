@@ -3,3 +3,11 @@ __pycache__
 
 # ignore output files from slurm
 *.out
+
+# ignore logs and output plots
+logs/
+pics/
+
+# ignore sbatch scripts
+cpu_job.sh
+gpu_job.sh
