@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import os
 
 from pathlib import Path
 from copy import deepcopy as dc
@@ -19,7 +20,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-file = path / 'log.txt'
+file = path / 'logs/log3.txt'
 
 # len(files)
 
@@ -237,9 +238,15 @@ if not RUN_BATCHED:
     if epoch % 100 == 0:
       print(f"Epoch: {epoch} | Loss: {loss.item()} | Test loss: {test_loss.item()}")
 
-for name, param in model.named_parameters():
-  if param.requires_grad:
-    print(name, param)
+# for name, param in model.named_parameters():
+#   if param.requires_grad:
+#     print(name, param)
+
+# SAVE TRAINED MODEL
+dir_path = os.getcwd()
+dir_path = os.path.join(dir_path, "models")
+SAVE_MODEL_PATH = os.path.join(dir_path, "model3.pth")
+torch.save(model.state_dict(), SAVE_MODEL_PATH)
 
 """## Test on simulated robots"""
 

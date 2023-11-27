@@ -34,13 +34,13 @@ AREA_RIGHT = 30.0
 AREA_TOP = 20.0
 AREA_BOTTOM = -20.0
 NUM_PARTICLES = 2000
-NUM_STEPS = 10000
+NUM_STEPS = 20000
 GRAPHICS_ON = False
 
 
 # Create log file
 path = pathlib.Path().resolve()
-file = path / 'log.txt'
+file = path / 'logs/log3.txt'
 
 
 
