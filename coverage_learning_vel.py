@@ -24,11 +24,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 print(f"Using device: {device}")
 
-from google.colab import drive
-drive.mount('/content/drive')
-
-path = Path("/content/drive/MyDrive/Colab Notebooks/PyTorch tutorial/coverage_centralized_vel").glob('**/*')
-files = [x for x in path if x.is_file()]
+path = Path().resolve()
+logpath = path / 'logs/coverage_centralized_learning/'
 
 len(files)
 

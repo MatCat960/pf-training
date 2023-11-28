@@ -5,7 +5,7 @@ __pycache__
 *.out
 
 # ignore logs and output plots
-logs/
+# logs/
 pics/
 
 # ignore sbatch scripts
