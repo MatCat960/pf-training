@@ -76,5 +76,49 @@ class myCNN2(nn.Module):
 
     return out
 
+class CoverageModel(nn.Module):
+  def __init__(self, input_size, output_size):
+    super().__init__()
+    self.input_size = input_size
+    self.output_size = output_size
+
+    self.fc1 = nn.Linear(input_size, 64)
+    self.fc2 = nn.Linear(64, 32)
+    self.fc3 = nn.Linear(32, output_size)
+    self.relu = nn.ReLU()
+    self.activation = nn.Sigmoid()
+
+  def forward(self, x):
+    x = self.activation(self.fc1(x))
+    x = self.activation(self.fc2(x))
+    x = self.fc3(x)
+
+    return x
+
+class CoverageModel2(nn.Module):
+  def __init__(self, input_size, output_size):
+    super().__init__()
+    self.input_size = input_size
+    self.output_size = output_size
+
+    self.fc1 = nn.Linear(input_size, 128)
+    self.fc2 = nn.Linear(128, 64)
+    self.fc3 = nn.Linear(64, 32)
+    self.fc4 = nn.Linear(32, output_size)
+    self.relu = nn.ReLU()
+    # self.activation = nn.Sigmoid()
+    self.activation = nn.Tanh()
+
+    self.scale_param = nn.Parameter(torch.ones(1))
+
+  def forward(self, x):
+    x = self.activation(self.fc1(x))
+    x = self.activation(self.fc2(x))
+    x = self.activation(self.fc3(x))
+    x = self.fc4(x)
+
+    return x
+
+
 
 

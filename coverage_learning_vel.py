@@ -19,6 +19,10 @@ import math
 from pathlib import Path
 from copy import deepcopy as dc
 
+# custom imports
+from models import *
+from train_utils import *
+
 # Setup device agnostic code
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -26,6 +30,7 @@ print(f"Using device: {device}")
 
 path = Path().resolve()
 logpath = path / 'logs/coverage_centralized_learning/'
+files = [x for x in path if x.is_file()]
 
 len(files)
 
@@ -37,152 +42,152 @@ GRID_STEPS = 64
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 
-"""## Utility Functions"""
+# """## Utility Functions"""
 
-def in_fov(robot, target, fov, range):
-  fov_rad = fov * math.pi / 180.0
-  xr = robot[0]
-  yr = robot[1]
-  phi = robot[2]
-  dx = target[0] - xr
-  dy = target[1] - yr
-  dist = math.sqrt(dx**2 + dy**2)
-  if dist > range:
-    return 0
+# def in_fov(robot, target, fov, range):
+#   fov_rad = fov * math.pi / 180.0
+#   xr = robot[0]
+#   yr = robot[1]
+#   phi = robot[2]
+#   dx = target[0] - xr
+#   dy = target[1] - yr
+#   dist = math.sqrt(dx**2 + dy**2)
+#   if dist > range:
+#     return 0
 
-  xrel = dx * math.cos(phi) + dy * math.sin(phi)
-  yrel = -dy * math.sin(phi) + dy * math.cos(phi)
-  angle = abs(math.atan2(yrel, xrel))
-  if (angle <= fov_rad) and (xrel >= 0.0):
-    return 1
-  else:
-    return 0
+#   xrel = dx * math.cos(phi) + dy * math.sin(phi)
+#   yrel = -dy * math.sin(phi) + dy * math.cos(phi)
+#   angle = abs(math.atan2(yrel, xrel))
+#   if (angle <= fov_rad) and (xrel >= 0.0):
+#     return 1
+#   else:
+#     return 0
 
-def gauss_pdf(x, y, means, covs):
-  """
-  Calculate the probability in the cell (x,y)
+# def gauss_pdf(x, y, means, covs):
+#   """
+#   Calculate the probability in the cell (x,y)
 
-  Args:
-    x (float) : x coord of the considered point
-    y (float) : y coord of the considered point
-    means (list(np.array)) : list of mean points
-    covs (list(np.array)) : list of covariance matrices
-  """
+#   Args:
+#     x (float) : x coord of the considered point
+#     y (float) : y coord of the considered point
+#     means (list(np.array)) : list of mean points
+#     covs (list(np.array)) : list of covariance matrices
+#   """
 
-  prob = 0.0
-  for i in range(len(means)):
-    m = means[i]
-    cov = covs[i]
-    exp = -0.5 * np.sum
+#   prob = 0.0
+#   for i in range(len(means)):
+#     m = means[i]
+#     cov = covs[i]
+#     exp = -0.5 * np.sum
 
-# X, Y : meshgrid
-def multigauss_pdf(X, Y, means, sigmas):
-  # Flatten the meshgrid coordinates
-  points = np.column_stack([X.flatten(), Y.flatten()])
+# # X, Y : meshgrid
+# def multigauss_pdf(X, Y, means, sigmas):
+#   # Flatten the meshgrid coordinates
+#   points = np.column_stack([X.flatten(), Y.flatten()])
 
-  # Number of components in the mixture model
-  num_components = len(means)
+#   # Number of components in the mixture model
+#   num_components = len(means)
 
 
-  # Initialize the probabilities
-  probabilities = np.zeros_like(X)
+#   # Initialize the probabilities
+#   probabilities = np.zeros_like(X)
 
-  # Calculate the probability for each component
-  for i in range(num_components):
-      mean = means[i]
-      covariance = sigmas[i]
+#   # Calculate the probability for each component
+#   for i in range(num_components):
+#       mean = means[i]
+#       covariance = sigmas[i]
 
-      # Calculate the multivariate Gaussian probability
-      exponent = -0.5 * np.sum((points - mean) @ np.linalg.inv(covariance) * (points - mean), axis=1)
-      coefficient = 1 / np.sqrt((2 * np.pi) ** 2 * np.linalg.det(covariance))
-      component_prob = coefficient * np.exp(exponent)
+#       # Calculate the multivariate Gaussian probability
+#       exponent = -0.5 * np.sum((points - mean) @ np.linalg.inv(covariance) * (points - mean), axis=1)
+#       coefficient = 1 / np.sqrt((2 * np.pi) ** 2 * np.linalg.det(covariance))
+#       component_prob = coefficient * np.exp(exponent)
 
-      # Add the component probability weighted by its weight
-      probabilities += component_prob.reshape(X.shape)
+#       # Add the component probability weighted by its weight
+#       probabilities += component_prob.reshape(X.shape)
 
-  return probabilities
+#   return probabilities
 
-def plot_fov(fov_deg, radius, ax):
-  # fig = plt.figure(figsize=(6,6))
-  # plt.scatter(neighs[:, 0], neighs[:, 1], marker='*')
+# def plot_fov(fov_deg, radius, ax):
+#   # fig = plt.figure(figsize=(6,6))
+#   # plt.scatter(neighs[:, 0], neighs[:, 1], marker='*')
 
-  x1 = np.array([0.0, 0.0, 0.0])
-  fov = fov_deg * math.pi / 180
-  arc_theta = np.arange(-0.5*fov, 0.5*fov, 0.01*math.pi)
-  th = np.arange(fov/2, 2*math.pi+fov/2, 0.01*math.pi)
+#   x1 = np.array([0.0, 0.0, 0.0])
+#   fov = fov_deg * math.pi / 180
+#   arc_theta = np.arange(-0.5*fov, 0.5*fov, 0.01*math.pi)
+#   th = np.arange(fov/2, 2*math.pi+fov/2, 0.01*math.pi)
 
-  # FOV
-  xfov = radius * np.cos(arc_theta)
-  xfov = np.append(x1[0], xfov)
-  xfov = np.append(xfov, x1[0])
-  yfov = radius * np.sin(arc_theta)
-  yfov = np.append(x1[1], yfov)
-  yfov = np.append(yfov, x1[1])
-  ax.plot(xfov, yfov)
+#   # FOV
+#   xfov = radius * np.cos(arc_theta)
+#   xfov = np.append(x1[0], xfov)
+#   xfov = np.append(xfov, x1[0])
+#   yfov = radius * np.sin(arc_theta)
+#   yfov = np.append(x1[1], yfov)
+#   yfov = np.append(yfov, x1[1])
+#   ax.plot(xfov, yfov)
 
-def generate_sequence_tensor(original_tensor, sequence_length=5):
-    num_samples, cols = original_tensor.shape
-    sequence_tensor = torch.zeros(num_samples, sequence_length, cols)
+# def generate_sequence_tensor(original_tensor, sequence_length=5):
+#     num_samples, cols = original_tensor.shape
+#     sequence_tensor = torch.zeros(num_samples, sequence_length, cols)
 
-    # sequence_tensor[:, 0, :, :, :] = original_tensor.roll(0, dims=0)
-    for i in range(0, sequence_length):
-        sequence_tensor[:, i, :] = original_tensor.roll(-i, dims=0)
+#     # sequence_tensor[:, 0, :, :, :] = original_tensor.roll(0, dims=0)
+#     for i in range(0, sequence_length):
+#         sequence_tensor[:, i, :] = original_tensor.roll(-i, dims=0)
 
-    return sequence_tensor
+#     return sequence_tensor
 
-from numpy import linalg as LA
+# from numpy import linalg as LA
 
-def plot_ellipse(ctr, cov, ax, s=4.605):
-  """
-  Args:
-    ctr (np.array(1, 2)): center of the ellipse
-    cov (np.array(2, 2)): covariance matrix
-    s (double): confidence interval
-  """
+# def plot_ellipse(ctr, cov, ax, s=4.605):
+#   """
+#   Args:
+#     ctr (np.array(1, 2)): center of the ellipse
+#     cov (np.array(2, 2)): covariance matrix
+#     s (double): confidence interval
+#   """
 
-  epsilon = 0.01
+#   epsilon = 0.01
 
-  eigenvalues, eigenvectors = LA.eigh(cov)
-  eigenvalues = eigenvalues + epsilon
-  # print(f"Eigenvalues: {eigenvalues}")
-  # if eigenvalues[0] < 0.0 or eigenvalues[1] < 0.0:
-  #   print(f"Cov matrix: {cov}")
-  #   print(f"Eigenvalues: {eigenvalues}")
-  # eigenvalues[eigenvalues < 0.0] = 0.1
-  a = math.sqrt(s*abs(eigenvalues[0]))
-  b = math.sqrt(s*abs(eigenvalues[1]))
+#   eigenvalues, eigenvectors = LA.eigh(cov)
+#   eigenvalues = eigenvalues + epsilon
+#   # print(f"Eigenvalues: {eigenvalues}")
+#   # if eigenvalues[0] < 0.0 or eigenvalues[1] < 0.0:
+#   #   print(f"Cov matrix: {cov}")
+#   #   print(f"Eigenvalues: {eigenvalues}")
+#   # eigenvalues[eigenvalues < 0.0] = 0.1
+#   a = math.sqrt(s*abs(eigenvalues[0]))
+#   b = math.sqrt(s*abs(eigenvalues[1]))
 
-  if (a < b):
-    temp = dc(a)
-    a = dc(b)
-    b = temp
+#   if (a < b):
+#     temp = dc(a)
+#     a = dc(b)
+#     b = temp
 
-  print(f"Major axis: {a}")
+#   print(f"Major axis: {a}")
 
-  m = 0
-  l = 1
-  if eigenvalues[1] > eigenvalues[0]:
-    m = 1
-    l = 0
+#   m = 0
+#   l = 1
+#   if eigenvalues[1] > eigenvalues[0]:
+#     m = 1
+#     l = 0
 
-  theta = math.atan2(eigenvectors[1,m], eigenvectors[0,m])
-  if theta < 0.0:
-    theta += math.pi
+#   theta = math.atan2(eigenvectors[1,m], eigenvectors[0,m])
+#   if theta < 0.0:
+#     theta += math.pi
 
-  vx = []; vy = []
-  x = ctr[0]
-  y = ctr[1]
-  for phi in np.arange(0, 2*np.pi, 0.1):
-    xs = x + a * np.cos(phi) * np.cos(theta) - b * np.sin(phi) * np.sin(theta)
-    ys = y + a * np.cos(phi) * np.sin(theta) + b * np.sin(phi) * np.cos(theta)
-    vx.append(xs)
-    vy.append(ys)
+#   vx = []; vy = []
+#   x = ctr[0]
+#   y = ctr[1]
+#   for phi in np.arange(0, 2*np.pi, 0.1):
+#     xs = x + a * np.cos(phi) * np.cos(theta) - b * np.sin(phi) * np.sin(theta)
+#     ys = y + a * np.cos(phi) * np.sin(theta) + b * np.sin(phi) * np.cos(theta)
+#     vx.append(xs)
+#     vy.append(ys)
 
-  vx.append(vx[0])
-  vy.append(vy[0])
+#   vx.append(vx[0])
+#   vy.append(vy[0])
 
-  # fig = plt.figure(figsize=(6,6))
-  ax.plot(vx, vy)
+#   # fig = plt.figure(figsize=(6,6))
+#   ax.plot(vx, vy)
 
 data = []
 sizes = []
@@ -277,59 +282,6 @@ for input, target in train_loader:
   print(input.shape, target.shape)
   break
 
-"""## Define neural network model"""
-
-class CoverageModel(nn.Module):
-  def __init__(self, input_size, output_size):
-    super().__init__()
-    self.input_size = input_size
-    self.output_size = output_size
-
-    self.fc1 = nn.Linear(input_size, 64)
-    self.fc2 = nn.Linear(64, 32)
-    self.fc3 = nn.Linear(32, output_size)
-    self.relu = nn.ReLU()
-    self.activation = nn.Sigmoid()
-
-  def forward(self, x):
-    x = self.activation(self.fc1(x))
-    x = self.activation(self.fc2(x))
-    x = self.fc3(x)
-
-    return x
-
-class CoverageModel2(nn.Module):
-  def __init__(self, input_size, output_size):
-    super().__init__()
-    self.input_size = input_size
-    self.output_size = output_size
-
-    self.fc1 = nn.Linear(input_size, 128)
-    self.fc2 = nn.Linear(128, 64)
-    self.fc3 = nn.Linear(64, 32)
-    self.fc4 = nn.Linear(32, output_size)
-    self.relu = nn.ReLU()
-    # self.activation = nn.Sigmoid()
-    self.activation = nn.Tanh()
-
-    self.scale_param = nn.Parameter(torch.ones(1))
-
-  def forward(self, x):
-    x = self.activation(self.fc1(x))
-    x = self.activation(self.fc2(x))
-    x = self.activation(self.fc3(x))
-    x = self.fc4(x)
-
-    # x[:, 4] = x[:, 3]
-
-    # cov_matrix = x[:, 2:]
-    # cov_matrix = cov_matrix.view(-1, 2, 2)
-    # scaled_cov_matrix = cov_matrix * self.scale_param
-    # scaled_cov_matrix = scaled_cov_matrix.view(-1, 4)
-
-    # out = torch.cat((x[:, :2], scaled_cov_matrix), dim=1)
-
-    return x
 
 """## Training"""
 
@@ -371,78 +323,8 @@ if not RUN_BATCHED:
 #   if param.requires_grad:
 #     print(name, param)
 
-"""## Test on simulated robots"""
-
-import random
-
-robots = np.zeros((ROBOTS_NUM, 2), dtype="float32")
-for i in range(ROBOTS_NUM):
-  robots[i, :] = -10.0 + 20.0 * np.random.rand(1, 2)
-
-# robots = np.array(([-4.0, 4.0],
-#                   [-4.0, -4.0],
-#                   [4.0, -4.0],
-#                   [4.0, 4.0],
-#                   [6.0, 0.0],
-#                   [-6.0, 0.0]),
-#                   dtype="float32")
-
-# robots = robots - 8.0
-plt.scatter(robots[:, 0], robots[:, 1])
-Xt = torch.from_numpy(robots)
-Xt = Xt.view(-1, ROBOTS_NUM*2)
-Xt = Xt.to(device)
-
-Xt[0, 0]
-
-"""## Forecast next steps"""
-
-NUM_STEPS = 500
-dt = 0.2
-
-X_hist = [Xt]
-# v_hist = []
-
-r_hist = []
-
-for i in range(ROBOTS_NUM):
-  r = []
-  r_hist.append(r)
-
-robots_hist = torch.Tensor(NUM_STEPS, ROBOTS_NUM, 2)
-print(robots_hist.shape)
-
-for i in range(NUM_STEPS):
-  # get velocity
-  v_pred = model(Xt)
-  # print(f"Vpred : {v_pred}")
-
-  # move robots
-  # v = v_pred.view(ROBOTS_NUM, 2)
-
-  # for j in range(2*ROBOTS_NUM):
-  Xt[0, :] = Xt[0, :] + v_pred[0, :] * dt
-  # print(f"Actual Xt: {Xt}")
-
-  xp = Xt.view(ROBOTS_NUM, 2)
-  for j in range(ROBOTS_NUM):
-    robots_hist[i, j, :] = xp[j, :]
-
-  X_hist.append(Xt)
-
-robots_hist[:, 0, :]
-
-for i in range(ROBOTS_NUM):
-  plt.plot(robots_hist[:, i, 0].cpu().detach().numpy(), robots_hist[:, i, 1].cpu().detach().numpy())
-
-  # for i in range(ROBOTS_NUM):
-  plt.scatter(robots_hist[-1, i, 0].cpu().detach().numpy(), robots_hist[-1, i, 1].cpu().detach().numpy())
-
-plt.plot(0.0, 0.0, '*')
-
-"""## Plot final position"""
-
-for i in range(ROBOTS_NUM):
-  plt.scatter(robots_hist[-1, i, 0].cpu().detach().numpy(), robots_hist[-1, i, 1].cpu().detach().numpy())
-
-plt.plot(0.0, 0.0, '*')
+# SAVE TRAINED MODEL
+dir_path = os.getcwd()
+dir_path = os.path.join(dir_path, "models")
+SAVE_MODEL_PATH = os.path.join(dir_path, "coverage_model.pth")
+torch.save(model.state_dict(), SAVE_MODEL_PATH)
