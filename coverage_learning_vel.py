@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import os
 
 from pathlib import Path
 from copy import deepcopy as dc
@@ -29,8 +30,9 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-logpath = path / 'logs/coverage_centralized_learning/'
-files = [x for x in path if x.is_file()]
+logpath = (path / 'logs/coverage_centralized_learning/').glob('**/*')
+print("Logpath: {}".format(logpath))
+files = [x for x in logpath if x.is_file()]
 
 len(files)
 

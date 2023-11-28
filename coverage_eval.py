@@ -26,7 +26,7 @@ model_path = path / 'models/coverage_model.pth'
 
 # len(files)
 
-ROBOTS_NUM = 5
+ROBOTS_NUM = 6
 lookback = 7
 AREA_W = 30.0
 AREA_H = 30.0
@@ -36,8 +36,8 @@ ROBOT_FOV = 120.0
 
 
 # Load model
-model = CoverageModel(2*ROBOTS_NUM,2*ROBOTS_NUM).to(device)
-model.load_state_dict(torch.load(model_path))
+model = CoverageModel2(2*ROBOTS_NUM,2*ROBOTS_NUM).to(device)
+model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 
 # axs[i].set_xlim([-10, 10])
 # axs[i].set_ylim([-10, 10])
@@ -103,7 +103,7 @@ for i in range(NUM_STEPS):
   X_hist.append(Xt)
 
 robots_hist[:, 0, :]
-
+fig = plt.figure(figsize=(10,10))
 for i in range(ROBOTS_NUM):
   plt.plot(robots_hist[:, i, 0].cpu().detach().numpy(), robots_hist[:, i, 1].cpu().detach().numpy())
 
@@ -111,10 +111,12 @@ for i in range(ROBOTS_NUM):
   plt.scatter(robots_hist[-1, i, 0].cpu().detach().numpy(), robots_hist[-1, i, 1].cpu().detach().numpy())
 
 plt.plot(0.0, 0.0, '*')
+plt.savefig(str(img1_path))
 
 """## Plot final position"""
-
+fig = plt.figure(figsize=(10,10))
 for i in range(ROBOTS_NUM):
   plt.scatter(robots_hist[-1, i, 0].cpu().detach().numpy(), robots_hist[-1, i, 1].cpu().detach().numpy())
 
 plt.plot(0.0, 0.0, '*')
+plt.savefig(str(img2_path))

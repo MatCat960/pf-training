@@ -39,7 +39,7 @@ Xtest = torch.Tensor([5.0, 0.0, 0.011218145581487034, 0.020915139555660062, 0.02
 
 # Load model
 model = myCNN2(6,6).to(device)
-model.load_state_dict(torch.load(model_path))
+model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 
 # axs[i].set_xlim([-10, 10])
 # axs[i].set_ylim([-10, 10])
