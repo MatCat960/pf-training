@@ -6,7 +6,7 @@ __pycache__
 
 # ignore logs and output plots
 # logs/
-pics/
+# pics/
 
 # ignore sbatch scripts
 cpu_job.sh
