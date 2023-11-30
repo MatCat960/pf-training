@@ -30,20 +30,19 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-logpath = (path / 'logs/coverage_centralized_learning/').glob('**/*')
+logpath = (path / 'logs/dynamic_coverage/').glob('**/*')
 print("Logpath: {}".format(logpath))
 files = [x for x in logpath if x.is_file()]
 
 len(files)
 
-ROBOTS_NUM = 6
+ROBOTS_NUM = 20
 lookback = 7
 AREA_W = 30.0
 AREA_H = 30.0
 GRID_STEPS = 64
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
-
 
 
 data = []
@@ -76,6 +75,9 @@ print(f"Pos length: {len(pos)}")
 for i in range(0, len(pos)):
   pos[i] = poses[2*i]
   vel[i] = poses[2*i+1]
+
+pos[pos == 100.0] = 0.0
+vel[vel == 99.9] = 0.0
 
 pos[0]
 
@@ -152,7 +154,7 @@ RUN_BATCHED = False
 """## Train on unbatched data"""
 
 if not RUN_BATCHED:
-  epochs = 5000
+  epochs = 10000
   epsilon = 0.01
 
   for epoch in range(epochs):
@@ -183,5 +185,5 @@ if not RUN_BATCHED:
 # SAVE TRAINED MODEL
 dir_path = os.getcwd()
 dir_path = os.path.join(dir_path, "models")
-SAVE_MODEL_PATH = os.path.join(dir_path, "coverage_model.pth")
+SAVE_MODEL_PATH = os.path.join(dir_path, "dyn_coverage_model.pth")
 torch.save(model.state_dict(), SAVE_MODEL_PATH)
