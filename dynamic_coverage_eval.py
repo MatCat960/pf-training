@@ -20,20 +20,20 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-img1_path = path / 'pics/dyn_coverage_img1.png'
-img2_path = path / 'pics/dyn_coverage_img2.png'
-model_path = path / 'models/dyn_coverage_model.pth'
+img1_path = path / 'pics/dropout_coverage_img1.png'
+img2_path = path / 'pics/dropout_coverage_img2.png'
+model_path = path / 'models/dropout_coverage_model.pth'
 
 # len(files)
 
 ROBOTS_MAX = 20
-ROBOTS_NUM = 6
+ROBOTS_NUM = 12
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 
 
 # Load model
-model = CoverageModel2(2*ROBOTS_MAX,2*ROBOTS_MAX).to(device)
+model = DropoutCoverageModel(2*ROBOTS_MAX,2*ROBOTS_MAX, device).to(device)
 model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 
 # axs[i].set_xlim([-10, 10])
@@ -46,20 +46,20 @@ import random
 
 robots = np.zeros((ROBOTS_NUM, 2), dtype="float32")
 for i in range(ROBOTS_NUM):
-  robots[i, :] = -10.0 + 20.0 * np.random.rand(1, 2)
+  robots[i, :] = -40.0 + 20.0 * np.random.rand(1, 2)
   
 robots_dummy = np.zeros((ROBOTS_MAX, 2), dtype="float32")
 
 
-robots = np.array(([-4.0, 4.0],
-                  [-4.0, -4.0],
-                  [4.0, -4.0],
-                  [4.0, 4.0],
-                  [6.0, 0.0],
-                  [-6.0, 0.0]),
-                  dtype="float32")
+# robots = np.array(([-4.0, 4.0],
+#                   [-4.0, -4.0],
+#                   [4.0, -4.0],
+#                   [4.0, 4.0],
+#                   [6.0, 0.0],
+#                   [-6.0, 0.0]),
+#                   dtype="float32")
 
-robots = robots - 8.0
+# robots = robots - 10.0
 robots_dummy[:ROBOTS_NUM, :] = robots
 plt.scatter(robots[:, 0], robots[:, 1])
 Xt = torch.from_numpy(robots_dummy)

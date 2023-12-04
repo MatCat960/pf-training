@@ -144,7 +144,7 @@ for input, target in train_loader:
 
 """## Training"""
 
-model = CoverageModel2(2 * ROBOTS_NUM, 2 * ROBOTS_NUM, device)
+model = DropoutCoverageModel(2 * ROBOTS_NUM, 2 * ROBOTS_NUM, device)
 model = model.to(device)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -185,5 +185,5 @@ if not RUN_BATCHED:
 # SAVE TRAINED MODEL
 dir_path = os.getcwd()
 dir_path = os.path.join(dir_path, "models")
-SAVE_MODEL_PATH = os.path.join(dir_path, "dyn_coverage_model.pth")
+SAVE_MODEL_PATH = os.path.join(dir_path, "dropout_coverage_model.pth")
 torch.save(model.state_dict(), SAVE_MODEL_PATH)

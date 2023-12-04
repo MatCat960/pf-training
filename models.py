@@ -107,8 +107,8 @@ class CoverageModel2(nn.Module):
     self.fc4 = nn.Linear(64, 32)
     self.fc5 = nn.Linear(32, output_size)
     self.relu = nn.ReLU()
-    # self.activation = nn.Sigmoid()
-    self.activation = nn.Tanh()
+    self.activation = nn.Sigmoid()
+    # self.activation = nn.Tanh()
 
     self.device = dev
     
@@ -133,6 +133,41 @@ class CoverageModel2(nn.Module):
     out[:, :in_size] = x[:, :in_size]
 
     return out
+
+  
+class DropoutCoverageModel(nn.Module):
+  def __init__(self, input_size, output_size, dev):
+    super().__init__()
+    self.input_size = input_size
+    self.output_size = output_size
+    self.device = dev
+
+    self.fc1 = nn.Linear(input_size, 128)
+    self.dropout1 = nn.Dropout(0.2)
+    self.fc2 = nn.Linear(128, 64)
+    self.dropout2 = nn.Dropout(0.2)
+    self.fc3 = nn.Linear(64, output_size)
+  
+    self.relu = nn.ReLU()
+    self.activation = nn.Tanh()
+    # self.activation = nn.Sigmoid()
+
+  def forward(self, x):
+    in_size = 0
+    for i in range(x.shape[1]):
+      if x[0, i] != 0.0:
+        in_size += 1
+
+    x = self.dropout1(self.activation(self.fc1(x)))
+    x = self.dropout2(self.activation(self.fc2(x)))
+    x = self.fc3(x)
+
+    out = np.zeros((x.shape[0], self.input_size), dtype="float32")
+    out = torch.from_numpy(out).to(self.device)
+    out[:, :in_size] = x[:, :in_size]
+
+    return out
+    
 
 
 
