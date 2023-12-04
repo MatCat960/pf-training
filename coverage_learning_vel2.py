@@ -30,7 +30,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-logpath = (path / 'logs/dynamic_coverage/').glob('**/*')
+logpath = (path / 'logs/dynamic_coverage_vel3/').glob('**/*')
 print("Logpath: {}".format(logpath))
 files = [x for x in logpath if x.is_file()]
 
@@ -154,7 +154,7 @@ RUN_BATCHED = False
 """## Train on unbatched data"""
 
 if not RUN_BATCHED:
-  epochs = 10000
+  epochs = 15000
   epsilon = 0.01
 
   for epoch in range(epochs):

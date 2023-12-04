@@ -46,7 +46,7 @@ import random
 
 robots = np.zeros((ROBOTS_NUM, 2), dtype="float32")
 for i in range(ROBOTS_NUM):
-  robots[i, :] = -40.0 + 20.0 * np.random.rand(1, 2)
+  robots[i, :] = -20.0 + 40.0 * np.random.rand(1, 2)
   
 robots_dummy = np.zeros((ROBOTS_MAX, 2), dtype="float32")
 
