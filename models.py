@@ -149,7 +149,8 @@ class DropoutCoverageModel(nn.Module):
     self.fc3 = nn.Linear(64, output_size)
   
     self.relu = nn.ReLU()
-    self.activation = nn.Tanh()
+    self.activation1 = nn.Tanh()
+    self.activation2 = nn.Tanh()
     # self.activation = nn.Sigmoid()
 
   def forward(self, x):
@@ -158,8 +159,8 @@ class DropoutCoverageModel(nn.Module):
       if x[0, i] != 0.0:
         in_size += 1
 
-    x = self.dropout1(self.activation(self.fc1(x)))
-    x = self.dropout2(self.activation(self.fc2(x)))
+    x = self.dropout1(self.activation1(self.fc1(x)))
+    x = self.dropout2(self.activation2(self.fc2(x)))
     x = self.fc3(x)
 
     out = np.zeros((x.shape[0], self.input_size), dtype="float32")
