@@ -168,6 +168,50 @@ class DropoutCoverageModel(nn.Module):
     out[:, :in_size] = x[:, :in_size]
 
     return out
+  
+class CoverageRNN(nn.Module):
+  def __init__(self, input_size, hidden_size, num_stacked_layers, output_size):
+    super().__init__()
+    self.input_size = input_size
+    self.output_size = output_size
+    self.hidden_size = hidden_size
+    self.num_stacked_layers = num_stacked_layers
+    self.lstm = nn.LSTM(input_size, hidden_size, num_stacked_layers, batch_first=True)
+    self.relu = nn.ReLU()
+    self.fc1 = nn.Linear(hidden_size, hidden_size)
+    self.dropout1 = nn.Dropout(0.2)
+    self.fc2 = nn.Linear(hidden_size, 64)
+    self.dropout2 = nn.Dropout(0.2)
+    self.fc3 = nn.Linear(64, output_size)
+    self.relu = nn.ReLU()
+    # self.activation = nn.Sigmoid()
+    self.activation1 = nn.Tanh()
+    self.activation2 = nn.Tanh()
+
+
+  def forward(self, x):
+    in_size = 0
+    # print(x.shape)
+    for i in range(x.shape[2]):
+      # print(row.shape)
+      if x[0, 0, i] != 0.0:
+        in_size += 1
+
+    batch_size, seq_len, _ = x.size()
+    h0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(device)
+    c0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(device)
+
+    x, _ = self.lstm(x, (h0, c0))
+    # print(f"x Shape: {x[:, -1, :].shape}")
+    x = self.dropout1(self.activation1(self.fc1(x[:, -1, :])))
+    x = self.dropout2(self.activation2(self.fc2(x)))
+    x = self.fc3(x)
+
+    out = np.zeros((x.shape[0], self.input_size), dtype="float32")
+    out = torch.from_numpy(out).to(device)
+    out[:, :in_size] = x[:, :in_size]
+
+    return out
     
 
 
