@@ -170,7 +170,7 @@ class DropoutCoverageModel(nn.Module):
     return out
   
 class CoverageRNN(nn.Module):
-  def __init__(self, input_size, hidden_size, num_stacked_layers, output_size):
+  def __init__(self, input_size, hidden_size, num_stacked_layers, output_size, device):
     super().__init__()
     self.input_size = input_size
     self.output_size = output_size
@@ -187,6 +187,7 @@ class CoverageRNN(nn.Module):
     # self.activation = nn.Sigmoid()
     self.activation1 = nn.Tanh()
     self.activation2 = nn.Tanh()
+    self.device = device
 
 
   def forward(self, x):
@@ -198,8 +199,8 @@ class CoverageRNN(nn.Module):
         in_size += 1
 
     batch_size, seq_len, _ = x.size()
-    h0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(device)
-    c0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(device)
+    h0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(self.device)
+    c0 = torch.zeros(self.num_stacked_layers, batch_size, self.hidden_size).to(self.device)
 
     x, _ = self.lstm(x, (h0, c0))
     # print(f"x Shape: {x[:, -1, :].shape}")
@@ -208,7 +209,7 @@ class CoverageRNN(nn.Module):
     x = self.fc3(x)
 
     out = np.zeros((x.shape[0], self.input_size), dtype="float32")
-    out = torch.from_numpy(out).to(device)
+    out = torch.from_numpy(out).to(self.device)
     out[:, :in_size] = x[:, :in_size]
 
     return out

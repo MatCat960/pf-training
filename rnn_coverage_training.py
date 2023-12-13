@@ -143,7 +143,8 @@ for input, target in train_loader:
 model = CoverageRNN(input_size = 2 * ROBOTS_NUM,
                     output_size = 2 * ROBOTS_NUM,
                     hidden_size = 128,
-                    num_stacked_layers= 4)
+                    num_stacked_layers= 4,
+                    device=device)
 model = model.to(device)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -185,7 +186,7 @@ if RUN_BATCHED:
       print(f"Epoch: {epoch+1} | Test Loss: {running_test_loss/len(test_loader)}")
 
 if not RUN_BATCHED:
-  epochs = 1000
+  epochs = 5000
   epsilon = 0.01
 
   for epoch in range(epochs):

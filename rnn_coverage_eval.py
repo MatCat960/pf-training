@@ -24,8 +24,9 @@ img1_path = path / 'pics/rnn_coverage_traj.png'
 img2_path = path / 'pics/rnn_coverage_final.png'
 model_path = path / 'models/rnn_coverage_model.pth'
 
-ROBOTS_MAX = 20
-ROBOTS_NUM = 12
+# ROBOTS_MAX = 20
+ROBOTS_NUM = 20
+N_ROBOTS = 12
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 lookback = 7
@@ -35,7 +36,8 @@ lookback = 7
 model = CoverageRNN(input_size = 2 * ROBOTS_NUM,
                     output_size = 2 * ROBOTS_NUM,
                     hidden_size = 128,
-                    num_stacked_layers= 4)
+                    num_stacked_layers= 4,
+                    device = device)
 model = model.to(device)
 model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 
@@ -43,10 +45,9 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 """## Test on simulated robots"""
 
 import random
-N_ROBOTS = 12
 robots = np.zeros((N_ROBOTS, 2), dtype="float32")
 for i in range(N_ROBOTS):
-  robots[i, :] = -40.0 + 40.0 * np.random.rand(1, 2)
+  robots[i, :] = -50.0 + 40.0 * np.random.rand(1, 2)
 
 robots_dummy = np.zeros((ROBOTS_NUM, 2), dtype="float32")
 robots_dummy[:N_ROBOTS, :] = robots
@@ -113,7 +114,7 @@ plt.plot(0.0, 0.0, '*')
 
 """## Forecast next steps"""
 
-NUM_STEPS = 2000
+NUM_STEPS = 1000
 dt = 0.2
 
 X_hist = [Xt]
@@ -155,6 +156,7 @@ for i in range(NUM_STEPS):
 
 robots_hist[:, 0, :]
 
+fig = plt.figure(figsize=(10,10))
 for i in range(N_ROBOTS):
   plt.plot(robots_hist[:, i, 0].cpu().detach().numpy(), robots_hist[:, i, 1].cpu().detach().numpy())
 
@@ -165,7 +167,7 @@ plt.plot(0.0, 0.0, '*')
 plt.savefig(str(img1_path))
 
 """## Plot final position"""
-
+fig = plt.figure(figsize=(10,10))
 for i in range(N_ROBOTS):
   plt.scatter(robots_hist[-1, i, 0].cpu().detach().numpy(), robots_hist[-1, i, 1].cpu().detach().numpy())
 
