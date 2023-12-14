@@ -30,7 +30,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-logpath = (path / 'logs/dynamic_coverage_vel3/').glob('**/*')
+# logpath = (path / 'logs/dynamic_coverage_vel3/').glob('**/*')
+logpath = (path / 'logs/pycov/').glob('**/*')
 print("Logpath: {}".format(logpath))
 files = [x for x in logpath if x.is_file()]
 
@@ -185,5 +186,5 @@ if not RUN_BATCHED:
 # SAVE TRAINED MODEL
 dir_path = os.getcwd()
 dir_path = os.path.join(dir_path, "models")
-SAVE_MODEL_PATH = os.path.join(dir_path, "dropout_coverage_model.pth")
+SAVE_MODEL_PATH = os.path.join(dir_path, "dropout_coverage_model3.pth")
 torch.save(model.state_dict(), SAVE_MODEL_PATH)

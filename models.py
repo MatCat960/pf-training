@@ -144,9 +144,9 @@ class DropoutCoverageModel(nn.Module):
 
     self.fc1 = nn.Linear(input_size, 128)
     self.dropout1 = nn.Dropout(0.2)
-    self.fc2 = nn.Linear(128, 64)
+    self.fc2 = nn.Linear(128, 128)
     self.dropout2 = nn.Dropout(0.2)
-    self.fc3 = nn.Linear(64, output_size)
+    self.fc3 = nn.Linear(128, output_size)
   
     self.relu = nn.ReLU()
     self.activation1 = nn.Tanh()

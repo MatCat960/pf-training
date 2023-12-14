@@ -26,7 +26,7 @@ model_path = path / 'models/rnn_coverage_model.pth'
 
 # ROBOTS_MAX = 20
 ROBOTS_NUM = 20
-N_ROBOTS = 12
+N_ROBOTS = 16
 ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 lookback = 7
@@ -47,7 +47,7 @@ model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 import random
 robots = np.zeros((N_ROBOTS, 2), dtype="float32")
 for i in range(N_ROBOTS):
-  robots[i, :] = -50.0 + 40.0 * np.random.rand(1, 2)
+  robots[i, :] = -20.0 + 40.0 * np.random.rand(1, 2)
 
 robots_dummy = np.zeros((ROBOTS_NUM, 2), dtype="float32")
 robots_dummy[:N_ROBOTS, :] = robots

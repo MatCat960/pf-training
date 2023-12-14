@@ -22,7 +22,7 @@ print(f"Using device: {device}")
 path = Path().resolve()
 img1_path = path / 'pics/dropout_coverage_img1.png'
 img2_path = path / 'pics/dropout_coverage_img2.png'
-model_path = path / 'models/dropout_coverage_model.pth'
+model_path = path / 'models/dropout_coverage_model2.pth'
 
 # len(files)
 
