@@ -10,13 +10,14 @@ from copy import deepcopy as dc
 from tqdm import tqdm
 
 path = Path().resolve()
-logpath = (path / 'logs/pycov/log.txt')
+logpath = (path / 'logs/pycov/log-global2.txt')
 
-epochs = 10000
+epochs = 5000
 ROBOTS_MAX = 20
 ROBOTS_NUM = 12
 AREA_W = 40.0
 GAUSSIAN_DISTRIBUTION = True
+vmax = 1.5
 
 # Create log file
 with open(str(logpath), 'w') as f:
@@ -137,12 +138,13 @@ if not GAUSSIAN_DISTRIBUTION:
 else:
   """## Gaussian Distribution"""
   for epoch in range(epochs):
-    ROBOS_NUM = np.random.randint(6, ROBOTS_MAX)
+    ROBOS_NUM = np.random.randint(14, ROBOTS_MAX)
     converged = False
-    NUM_STEPS = 100
+    NUM_STEPS = 150
     GAUSS_PT = np.zeros((1, 2))
     GAUSS_COV = 2.0*np.eye(2)
     points = -0.5*AREA_W + AREA_W * np.random.rand(ROBOTS_NUM, 2)
+    # points[:, 0] = -points[:, 0]
     discretize_precision = 0.5
     # fig, axs = plt.subplots(2, int(NUM_STEPS/2), figsize=(18,5))
     for s in range(1, NUM_STEPS+1):
@@ -224,6 +226,8 @@ else:
         # print(f"Centroid: {centr}")
         dist = np.linalg.norm(robot-centr)
         vel = 0.8 * (centr - robot)
+        vel[0,0] = max(-vmax, min(vmax, vel[0,0]))
+        vel[0,1] = max(-vmax, min(vmax, vel[0,1]))
         points[idx, :] = robot + vel
 
         with open(str(logpath), 'a') as f:

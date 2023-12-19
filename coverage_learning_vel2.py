@@ -53,6 +53,9 @@ for file in files:
     lines = f.readlines()
     sizes.append(len(lines))
 
+  s = int(len(lines)/ROBOTS_NUM) * ROBOTS_NUM
+  lines = lines[:s]
+
   for l in lines:
     data.append(l)
 
@@ -155,7 +158,7 @@ RUN_BATCHED = False
 """## Train on unbatched data"""
 
 if not RUN_BATCHED:
-  epochs = 15000
+  epochs = 5000
   epsilon = 0.01
 
   for epoch in range(epochs):
@@ -186,5 +189,5 @@ if not RUN_BATCHED:
 # SAVE TRAINED MODEL
 dir_path = os.getcwd()
 dir_path = os.path.join(dir_path, "models")
-SAVE_MODEL_PATH = os.path.join(dir_path, "dropout_coverage_model3.pth")
+SAVE_MODEL_PATH = os.path.join(dir_path, "pycov_model.pth")
 torch.save(model.state_dict(), SAVE_MODEL_PATH)
