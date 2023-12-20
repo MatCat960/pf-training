@@ -10,10 +10,10 @@ from copy import deepcopy as dc
 from tqdm import tqdm
 
 path = Path().resolve()
-logpath = (path / 'logs/pycov/log-global2.txt')
+logpath = (path / 'logs/pycov/30/log.txt')
 
-epochs = 5000
-ROBOTS_MAX = 20
+epochs = 10000
+ROBOTS_MAX = 30
 ROBOTS_NUM = 12
 AREA_W = 40.0
 GAUSSIAN_DISTRIBUTION = True
@@ -138,9 +138,9 @@ if not GAUSSIAN_DISTRIBUTION:
 else:
   """## Gaussian Distribution"""
   for epoch in range(epochs):
-    ROBOS_NUM = np.random.randint(14, ROBOTS_MAX)
+    ROBOS_NUM = np.random.randint(12, ROBOTS_MAX)
     converged = False
-    NUM_STEPS = 150
+    NUM_STEPS = 500
     GAUSS_PT = np.zeros((1, 2))
     GAUSS_COV = 2.0*np.eye(2)
     points = -0.5*AREA_W + AREA_W * np.random.rand(ROBOTS_NUM, 2)
