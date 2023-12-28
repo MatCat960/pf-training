@@ -7,6 +7,8 @@ import math
 from pathlib import Path
 from copy import deepcopy as dc
 
+from torch_geometric.nn import MessagePassing, global_mean_pool, GCNConv
+
 
 
 class myCNN(nn.Module):
@@ -214,6 +216,43 @@ class CoverageRNN(nn.Module):
 
     return out
     
+class GNNCoverageModel(nn.Module):
+  def __init__(self, input_size, hidden_channels, num_robots, output_size):
+    super(GNNCoverageModel, self).__init__()
+    self.conv1 = GCNConv(input_size, hidden_channels)
+    self.conv2 = GCNConv(hidden_channels, hidden_channels)
+    self.fc = nn.Linear(hidden_channels, output_size*num_robots)
+    self.num_robots = num_robots
+    self.relu1 = nn.ReLU()
+    self.relu2 = nn.ReLU()
+
+  def forward(self, data):
+    x, edge_id = data.x, data.edge_index
+
+    # print(f"shape: {x.shape, edge_id.shape}")
+
+    # print("SONO QUI 1")
+    x = self.relu1(self.conv1(x, edge_id))
+    # print(f"Shape after conv 1: {x.shape}")
+    x = self.relu2(self.conv2(x, edge_id))
+    # print(f"Shape after conv 2: {x.shape}")
+
+    # print("SONO QUI 2")
+    x = global_mean_pool(x, data.batch)
+
+    # print("SONO QUI 3")
+    # # separate nodes for each robot
+    # print(f"Shape after global mean pool: {x.shape}")
+    # print(f"x size 1 : {x.size(1)}")
+    # x = x.view(-1, self.num_robots, x.size(1))
+
+    # print("SONO QUI 4")
+
+    # predict velocity for each robot
+    vel_out = self.fc(x)
+    vel_out = vel_out.view(-1, self.num_robots, 2)
+
+    return vel_out
 
 
 
