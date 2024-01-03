@@ -165,8 +165,8 @@ class DropoutCoverageModel(nn.Module):
     x = self.dropout2(self.activation2(self.fc2(x)))
     x = self.fc3(x)
 
-    out = np.zeros((x.shape[0], self.input_size), dtype="float32")
-    out = torch.from_numpy(out).to(self.device)
+    out = torch.zeros((x.shape[0], self.input_size))
+    # out = torch.from_numpy(out).to(self.device)
     out[:, :in_size] = x[:, :in_size]
 
     return out
