@@ -10,11 +10,11 @@ from copy import deepcopy as dc
 from tqdm import tqdm
 
 path = Path().resolve()
-logpath = (path / 'logs/pycov/30/log.txt')
+logpath = (path / 'logs/pycov/20/log20b.txt')
 
-epochs = 10000
-ROBOTS_MAX = 30
-ROBOTS_NUM = 12
+epochs = 5000
+ROBOTS_MAX = 20
+ROBOTS_NUM = 20
 AREA_W = 40.0
 GAUSSIAN_DISTRIBUTION = True
 vmax = 1.5
@@ -138,14 +138,15 @@ if not GAUSSIAN_DISTRIBUTION:
 else:
   """## Gaussian Distribution"""
   for epoch in range(epochs):
-    ROBOS_NUM = np.random.randint(12, ROBOTS_MAX)
+    # num = np.random.randint(12, ROBOTS_MAX)
+    num = ROBOTS_NUM
     converged = False
     NUM_STEPS = 500
     GAUSS_PT = np.zeros((1, 2))
     GAUSS_COV = 2.0*np.eye(2)
-    points = -0.5*AREA_W + AREA_W * np.random.rand(ROBOTS_NUM, 2)
+    points = -0.5*AREA_W + AREA_W * np.random.rand(num, 2)
     # points[:, 0] = -points[:, 0]
-    discretize_precision = 0.5
+    discretize_precision = 0.25
     # fig, axs = plt.subplots(2, int(NUM_STEPS/2), figsize=(18,5))
     for s in range(1, NUM_STEPS+1):
       row = 0
@@ -153,18 +154,18 @@ else:
         row = 1
 
       # mirror points across each edge of the env
-      dummy_points = np.zeros((5*ROBOTS_NUM, 2))
-      dummy_points[:ROBOTS_NUM, :] = points
+      dummy_points = np.zeros((5*num, 2))
+      dummy_points[:num, :] = points
       mirrored_points = mirror(points)
       mir_pts = np.array(mirrored_points)
-      dummy_points[ROBOTS_NUM:, :] = mir_pts
+      dummy_points[num:, :] = mir_pts
 
       # Voronoi partitioning
       vor = Voronoi(dummy_points)
 
       conv = True
       lim_regions = []
-      for idx in range(ROBOTS_NUM):
+      for idx in range(num):
         region = vor.point_region[idx]
         poly_vert = []
         for vert in vor.regions[region]:
@@ -216,8 +217,9 @@ else:
               Cx += i*dA_pdf
               Cy += j*dA_pdf
 
-        Cx = Cx / A
-        Cy = Cy / A
+        if A != 0.0:
+          Cx = Cx / A
+          Cy = Cy / A
 
 
         # centr = np.array([lim_region.centroid.x, lim_region.centroid.y])
@@ -237,7 +239,7 @@ else:
         if dist > 0.1:
           conv = False
 
-      for _ in range(ROBOTS_NUM, ROBOTS_MAX):
+      for _ in range(num, ROBOTS_MAX):
         with open(str(logpath), 'a') as f:
           f.writelines("100.0 100.0\n")
           f.writelines("99.9 99.9\n")
