@@ -144,11 +144,11 @@ class DropoutCoverageModel(nn.Module):
     self.output_size = output_size
     self.device = dev
 
-    self.fc1 = nn.Linear(input_size, 128)
+    self.fc1 = nn.Linear(input_size, 512)
     self.dropout1 = nn.Dropout(0.2)
-    self.fc2 = nn.Linear(128, 128)
+    self.fc2 = nn.Linear(512, 512)
     self.dropout2 = nn.Dropout(0.2)
-    self.fc3 = nn.Linear(128, output_size)
+    self.fc3 = nn.Linear(512, output_size)
   
     self.relu = nn.ReLU()
     self.activation1 = nn.Tanh()
@@ -217,7 +217,7 @@ class CoverageRNN(nn.Module):
     return out
     
 class GNNCoverageModel(nn.Module):
-  def __init__(self, input_size, hidden_channels, num_robots, output_size):
+  def __init__(self, input_size, hidden_channels, num_robots, output_size, device):
     super(GNNCoverageModel, self).__init__()
     self.conv1 = GCNConv(input_size, hidden_channels)
     self.conv2 = GCNConv(hidden_channels, hidden_channels)
@@ -225,16 +225,26 @@ class GNNCoverageModel(nn.Module):
     self.num_robots = num_robots
     self.relu1 = nn.ReLU()
     self.relu2 = nn.ReLU()
+    self.activation = nn.Tanh()
+    self.device = device
 
   def forward(self, data):
     x, edge_id = data.x, data.edge_index
+    # print(f"x shape: {x.shape}")
+    in_size = 0
+    # print(x.shape)
+    for i in range(x.shape[0]):
+      # print(row.shape)
+      if x[i, 0] != 0.0 and x[i, 1] != 0.0:
+        in_size += 1
 
+    # print("in_size: {}".format(in_size))
     # print(f"shape: {x.shape, edge_id.shape}")
 
     # print("SONO QUI 1")
-    x = self.relu1(self.conv1(x, edge_id))
+    x = self.activation(self.conv1(x, edge_id))
     # print(f"Shape after conv 1: {x.shape}")
-    x = self.relu2(self.conv2(x, edge_id))
+    x = self.activation(self.conv2(x, edge_id))
     # print(f"Shape after conv 2: {x.shape}")
 
     # print("SONO QUI 2")
@@ -252,7 +262,11 @@ class GNNCoverageModel(nn.Module):
     vel_out = self.fc(x)
     vel_out = vel_out.view(-1, self.num_robots, 2)
 
-    return vel_out
+    out = np.zeros((1, self.num_robots, 2), dtype="float32")
+    out = torch.from_numpy(out).to(self.device)
+    out[:, :in_size, :] = vel_out[:, :in_size, :]
+
+    return out
 
 
 

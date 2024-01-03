@@ -31,7 +31,7 @@ print(f"Using device: {device}")
 
 path = Path().resolve()
 # logpath = (path / 'logs/dynamic_coverage_vel3/').glob('**/*')
-logpath = (path / 'logs/pycov/').glob('**/*')
+logpath = (path / 'logs/pycov/20').glob('**/*')
 print("Logpath: {}".format(logpath))
 files = [x for x in logpath if x.is_file()]
 
@@ -53,7 +53,7 @@ for file in files:
     lines = f.readlines()
     sizes.append(len(lines))
 
-  s = int(len(lines)/ROBOTS_NUM) * ROBOTS_NUM
+  s = int(len(lines)/ROBOTS_NUM/2) * ROBOTS_NUM * 2
   lines = lines[:s]
 
   for l in lines:
@@ -182,6 +182,41 @@ if not RUN_BATCHED:
     if epoch % 100 == 0:
       print(f"Epoch: {epoch} | Loss: {loss.item()} | Test loss: {test_loss.item()}")
 
+
+"""## Train on batched data"""
+if RUN_BATCHED:
+  epochs = 100
+
+  for epoch in range(epochs):
+    model.train()
+    running_loss = 0.0
+    for inputs, targets in train_loader:
+      outputs = model(inputs)
+      # if epoch == 0:
+        # print(f"Output shape: {outputs.shape}")
+        # print(f"Targets shape: {targets.shape}")
+
+      loss = loss_fn(outputs, targets)
+      optimizer.zero_grad()
+      loss.backward()
+      optimizer.step()
+      running_loss += loss.item()
+
+    # print(f"Epoch: {epoch+1} | Loss: {running_loss/len(train_loader)}")
+
+    ### Testing
+    model.eval()
+    with torch.no_grad():
+      running_test_loss = 0.0
+      for test_inputs, test_targets in test_loader:
+        test_outputs = model(test_inputs)
+        test_loss = loss_fn(test_outputs, test_targets)
+        running_test_loss += test_loss.item()
+
+    # if epoch % 100 == 0.0:
+      print(f"Epoch: {epoch+1} | Loss: {running_loss/len(train_loader)} | Test Loss: {running_test_loss/len(test_loader)}")
+
+
 # for name, param in model.named_parameters():
 #   if param.requires_grad:
 #     print(name, param)
@@ -189,5 +224,5 @@ if not RUN_BATCHED:
 # SAVE TRAINED MODEL
 dir_path = os.getcwd()
 dir_path = os.path.join(dir_path, "models")
-SAVE_MODEL_PATH = os.path.join(dir_path, "pycov_model.pth")
+SAVE_MODEL_PATH = os.path.join(dir_path, "pycov_model2.pth")
 torch.save(model.state_dict(), SAVE_MODEL_PATH)
