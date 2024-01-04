@@ -1,13 +1,12 @@
 import torch
 from torch import nn
-import matplotlib.pyplot as plt
 import numpy as np
 import math
 
 from pathlib import Path
 from copy import deepcopy as dc
 
-from torch_geometric.nn import MessagePassing, global_mean_pool, GCNConv
+# from torch_geometric.nn import MessagePassing, global_mean_pool, GCNConv
 
 
 
@@ -45,7 +44,7 @@ class myCNN(nn.Module):
 
     return x
 
-class myCNN2(nn.Module):
+class PFModel(nn.Module):
   def __init__(self, input_size, output_size):
     super().__init__()
     self.input_size = input_size
@@ -77,6 +76,45 @@ class myCNN2(nn.Module):
     out = torch.cat((x[:, :2], scaled_cov_matrix), dim=1)
 
     return out
+
+class PFModelWithObs(nn.Module):
+  def __init__(self, input_size, output_size, hidden_size):
+    super().__init__()
+    self.input_size = input_size
+    self.output_size = output_size
+    self.hidden_size = hidden_size
+
+    self.fc1 = nn.Linear(input_size, hidden_size)
+    self.fc2 = nn.Linear(hidden_size, hidden_size)
+    self.fc3 = nn.Linear(hidden_size, output_size)
+    self.relu = nn.ReLU(inplace=True)
+    self.dropout = nn.Dropout(0.2)
+    # self.activation = nn.Tanh()
+    self.activation = nn.Sigmoid()
+
+    self.scale_param = nn.Parameter(torch.ones(1))
+
+  def forward(self, x):
+    x = self.activation(self.fc1(x))
+    x = self.activation(self.fc2(x))
+    x = self.fc3(x)
+
+    x[:, 4] = x[:, 3]
+
+    cov_matrix = x[:, 2:]
+    cov_matrix = cov_matrix.view(-1, 2, 2)
+    scaled_cov_matrix = cov_matrix * self.scale_param
+    scaled_cov_matrix = scaled_cov_matrix.view(-1, 4)
+
+    out = torch.cat((x[:, :2], scaled_cov_matrix), dim=1)
+
+    return out
+
+
+
+
+
+
 
 class CoverageModel(nn.Module):
   def __init__(self, input_size, output_size):
@@ -165,7 +203,7 @@ class DropoutCoverageModel(nn.Module):
     x = self.dropout2(self.activation2(self.fc2(x)))
     x = self.fc3(x)
 
-    out = torch.zeros((x.shape[0], self.input_size))
+    out = torch.zeros((x.shape[0], self.input_size)).to(self.device)
     # out = torch.from_numpy(out).to(self.device)
     out[:, :in_size] = x[:, :in_size]
 
@@ -267,6 +305,8 @@ class GNNCoverageModel(nn.Module):
     out[:, :in_size, :] = vel_out[:, :in_size, :]
 
     return out
+
+  
 
 
 
