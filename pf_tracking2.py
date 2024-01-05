@@ -17,8 +17,8 @@ from particleFilter import ParticleFilter
 
 
 # Parameters
-ROBOT_RANGE = 15.0
-ROBOT_FOV = 120.0
+ROBOT_RANGE = 8.0
+ROBOT_FOV = 80.0
 AREA_SIZE = 40.0
 AREA_LEFT = -10.0
 AREA_RIGHT = 30.0
@@ -31,7 +31,7 @@ GRAPHICS_ON = False
 
 # Create log file
 path = pathlib.Path().resolve()
-file = path / 'logs/pf_training_log.txt'
+file = path / 'logs/pf_dataset_with_obs/log4.txt'
 
 
 

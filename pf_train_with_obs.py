@@ -20,7 +20,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-file = path / 'logs/pf_training_log.txt'
+files = path / ('logs/pf_dataset_with_obs/').glob('**/*')
 
 # len(files)
 
@@ -35,15 +35,15 @@ GRAPHICS_ON = False
 
 data = []
 sizes = []
-# for file in files:
-with open(file) as f:
-  lines = f.readlines()
-  sizes.append(len(lines))
+for file in files:
+  with open(file) as f:
+    lines = f.readlines()
+    sizes.append(len(lines))
 
-for l in lines:
-  data.append(l)
+  for l in lines:
+    data.append(l)
 
-print(data[0])
+  print(data[0])
 
 poses = np.zeros([len(data), 8], dtype="float32")
 
