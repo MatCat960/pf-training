@@ -20,7 +20,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f"Using device: {device}")
 
 path = Path().resolve()
-files = path / ('logs/pf_dataset_with_obs/').glob('**/*')
+file = path / 'logs/pf_dataset_nofov/log.txt'
 
 # len(files)
 
@@ -33,17 +33,19 @@ ROBOT_RANGE = 15.0
 ROBOT_FOV = 120.0
 GRAPHICS_ON = False
 
+X_tot = torch.zeros((1, 8)).to(device)
+y_tot = torch.zeros((1,6)).to(device)
+
 data = []
 sizes = []
-for file in files:
-  with open(file) as f:
-    lines = f.readlines()
-    sizes.append(len(lines))
+with open(file) as f:
+  lines = f.readlines()
+  sizes.append(len(lines))
 
-  for l in lines:
-    data.append(l)
+for l in lines:
+  data.append(l)
 
-  print(data[0])
+print(data[0])
 
 poses = np.zeros([len(data), 8], dtype="float32")
 
@@ -51,39 +53,33 @@ for i in range(len(data)):
   data[i] = data[i].replace('\n', '')
   poses[i] = tuple(map(float, data[i].split(' ')[:-1]))
 
-print("Sizes: {}".format(sizes))
-poses.shape
-
-"""## Remove elements with null covariance matrix"""
-
-# poses_new = np.zeros((6))
-# print(poses[0].shape)
-# for i in range(len(poses)):
-#   if poses[i, 3] != 0.0:
-#     poses_new = np.append(poses_new, poses[i, :], axis=0)
-
-# poses_new.shape
-
-"""## Convert numpy to torch.Tensor"""
-
 y = torch.from_numpy(poses).to(device)
-
-y.shape
-
-"""## Generate input tensors
-
-- Input tensor  : $X = [x_t, Σ_{t-1}]$
-- Output tensor : $y = [x_t, Σ_t]$
-"""
 
 X = torch.zeros_like(y)
 X[:, :2] = y[:, :2]
+X[:, -2:] = y[:, -2:]
 
+# set covariance matrix values
 for i in range(1, y.shape[0]):
-  X[i, 2:] = y[i-1, 2:]
+  X[i, 2:-2] = y[i-1, 2:-2]
+
+# print(X[1])
+
+# for i in range(X.shape[0]):
+#   if X[i, -2] != 0.0 and X[i, -1] != 0.0:
+#     X[i, -2:] = X[i, :2]
 
 X = X[1:, :]
 y = y[1:, :-2]
+
+
+X_tot = torch.cat((X_tot, X))
+y_tot = torch.cat((y_tot, y))
+
+# X.shape, y.shape
+
+X = X_tot[2:, :]
+y = y_tot[2:, :]
 
 X.shape, y.shape
 
@@ -130,7 +126,7 @@ for input, target in train_loader:
 
 """## Training"""
 
-model = PFModelWithObs(8, 6, 512)
+model = PFModelWithObs(8, 6, 128)
 model = model.to(device)
 loss_fn = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -175,7 +171,7 @@ if RUN_BATCHED:
 """## Train on unbatched data"""
 
 if not RUN_BATCHED:
-  epochs = 10000
+  epochs = 1000
   epsilon = 0.01
 
   for epoch in range(epochs):
@@ -185,21 +181,6 @@ if not RUN_BATCHED:
       print(f"output shape: {y_pred.shape}")
       print(f"Target shape: {y_train.shape}")
     loss = loss_fn(y_pred[:, 2:], y_train[:, 2:])
-    # print(f"Matrix before cholesky: {y_train[:, 2:]}")
-    # cholesky_output = y_pred[:, 2:].view(-1, 2, 2)
-    # loss_pos = loss_fn(y_pred[:, :2], y_train[:, :2])
-    # chol = torch.matmul(cholesky_output, cholesky_output.transpose(1,2)).view(-1, 4)
-    # print(f"Cholesky matrix: {chol}")
-    # print(f"Chol shape: {chol.shape}")
-    # print(f"y_train cov shape: {y_train[:, 2:].shape}")
-    # loss_cholesky = loss_fn(chol, y_train[:, 2:])
-    # loss = loss_pos + loss_cholesky
-    # print(f"Position loss: {loss_pos.item()} | Covariance loss: {loss_cholesky.item()}")
-    # reg_term = torch.mean(torch.abs(y_pred[2:]))
-    # loss = loss + reg_term
-    # loss_covariance = loss_fn(y_pred[2:], y_train[2:])
-    # alpha = 0.75
-    # loss = alpha * loss_position + (1-alpha) * loss_covariance
     torch.autograd.set_detect_anomaly(True)
     optimizer.zero_grad()
     loss.backward()

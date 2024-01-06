@@ -31,7 +31,7 @@ GRAPHICS_ON = False
 
 # Create log file
 path = pathlib.Path().resolve()
-file = path / 'logs/pf_dataset_nofov/log.txt'
+file = path / 'logs/pf_dataset_nofov/log2.txt'
 
 
 
@@ -73,9 +73,9 @@ for i in range(NUM_STEPS):
 
   # check if target is inside
   rnd = np.random.rand()
-  print("Random : {}".format(rnd))
+  # print("Random : {}".format(rnd))
 
-  if rnd < 0.5:
+  if rnd < 0.25:
     # filter.setProcessCovariance(0.1*np.ones(3))
     filter.predict(vels[i, :], dt)
     filter.updateWeights(robot[:,i], 0.1)
@@ -111,7 +111,7 @@ for i in range(NUM_STEPS):
 
   # add observation to file (if any)
   dummy_obs = np.zeros((2))
-  if rnd < 0.5:
+  if rnd < 0.25:
     txt_arr = np.hstack((txt_arr, r))
   else:
     txt_arr = np.hstack((txt_arr, dummy_obs))

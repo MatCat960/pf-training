@@ -22,7 +22,7 @@ print(f"Using device: {device}")
 path = Path().resolve()
 img1_path = path / 'pics/pf-with-obs-1.png'
 img2_path = path / 'pics/pf-with-obs-2.png'
-model_path = path / 'models/pf-model-with_obs2.pth'
+model_path = path / 'models/pf-model-with-obs.pth'
 
 # len(files)
 
@@ -31,14 +31,14 @@ lookback = 7
 AREA_W = 30.0
 AREA_H = 30.0
 GRID_STEPS = 64
-ROBOT_RANGE = 15.0
-ROBOT_FOV = 120.0
+ROBOT_RANGE = 10.0
+ROBOT_FOV = 90.0
 
 # start in (5, 0) with low uncertainty (inside FoV)
 Xtest = torch.Tensor([5.0, 0.0, 0.011218145581487034, 0.020915139555660062, 0.020915139555660062, 0.042239186289305224, 5.0, 0.0]).to(device)
 
 # Load model
-model = PFModelWithObs(8, 6, 512).to(device)
+model = PFModelWithObs(8, 6, 128).to(device)
 model.load_state_dict(torch.load(model_path, map_location=torch.device(device)))
 
 # axs[i].set_xlim([-10, 10])
@@ -131,8 +131,8 @@ plt.savefig(str(img1_path))
 """### Robot starting inside, then moving outside and staying outside"""
 
 NUM_STEPS = 5
-dt = 0.5
-vel = 5.0
+dt = 0.2
+vel = 0.5
 Xtest = torch.Tensor([5.0, 0.0, 0.011218145581487034, 0.020915139555660062, 0.020915139555660062, 0.042239186289305224, 5.0, 0.0]).to(device)
 xp = []; yp = []
 x = Xtest[0]
@@ -157,7 +157,7 @@ print(robot.shape)
 
 NUM_STEPS = 5
 dt = 0.2
-vel = 2.0
+vel = 0.5
 fig, axs = plt.subplots(2, NUM_STEPS, figsize=(18,5))
 X_i = Xtest
 for i in range(1, 2*NUM_STEPS+1):
