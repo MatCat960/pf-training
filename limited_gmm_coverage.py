@@ -18,7 +18,7 @@ PARTICLES_NUM = 500
 AREA_W = 20.0
 vmax = 1.5
 SAFETY_DIST = 2.0
-EPISODES = 500
+EPISODES = 200
 
 
 path = Path().resolve()
@@ -31,7 +31,7 @@ def plot_occgrid(x, y, z, save=False, name="occgrid", ax=None):
   x, y, z : meshgrid
   """
   if save:
-    path = Path("drive/MyDrive/Colab Notebooks/PyTorch tutorial/images")
+    path = Path("/unimore_home/mcatellani/pf-training/pics/")
 
   if ax is None:
     fig, ax = plt.subplots(1, 1, figsize=(6,6))
@@ -156,7 +156,7 @@ for episode in range(EPISODES):
   imgs = np.zeros((1, ROBOTS_NUM, GRID_STEPS, GRID_STEPS))
   vels = np.zeros((1, ROBOTS_NUM, 2))
 
-  step = 2 * ROBOT_RANGE / GRID_STEPS
+  r_step = 2 * ROBOT_RANGE / GRID_STEPS
   for s in range(1, NUM_STEPS+1):
     row = 0
     if s > 5:
@@ -202,16 +202,16 @@ for episode in range(EPISODES):
       for i in range(GRID_STEPS):
         for j in range(GRID_STEPS):
           # jj = GRID_STEPS-1-j
-          p_ij = np.array([-ROBOT_RANGE+i*step, -ROBOT_RANGE+j*step])
+          p_ij = np.array([-ROBOT_RANGE+j*r_step, -ROBOT_RANGE+i*r_step])
           # print(f"Point ({i},{j}): {p_ij}")
           for n in local_pts:
             if np.linalg.norm(n - p_ij) <= SAFETY_DIST:
-              img_i[j, i] = -1.0
+              img_i[i, j] = -1.0
 
           # Check if outside boundaries
           p_w = p_ij + p_i
           if p_w[0] < -0.5*AREA_W or p_w[0] > 0.5*AREA_W or p_w[1] < -0.5*AREA_W or p_w[1] > 0.5*AREA_W:
-            img_i[j, i] = -1.0
+            img_i[i, j] = -1.0
         
       img_s[idx, :, :] = img_i
       region = vor.point_region[idx]
